@@ -21,4 +21,9 @@ You may also want to change the following:
 commit to be accepted regardless of issues. By default is contains `trivial`,
 `merge`, `hotyb` (hold on to your butt), and `wdil` (we'll do it live).
 
+    GERRIT_USERNAME
+
+`GERRIT_USERNAME` may be used to override the username used to login to Gerrit.
+Otherwise, the current user will be used.
+
 That's it!

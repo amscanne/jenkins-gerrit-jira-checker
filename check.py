@@ -7,6 +7,7 @@ import tempfile
 import atexit
 import shutil
 import subprocess
+import getpass
 
 from jira.client import JIRA
 
@@ -15,6 +16,7 @@ TOKENS = (os.getenv("TOKENS") or "wdil,trivial,merge,hotyb").split(",")
 JIRA_SERVER = os.getenv("JIRA_SERVER")
 JIRA_USERNAME = os.getenv("JIRA_USERNAME")
 JIRA_PASSWORD = os.getenv("JIRA_PASSWORD")
+GERRIT_USERNAME = os.getenv("GERRIT_USERNAME") or getpass.getuser()
 
 # Check that we have JIRA configuration.
 if not JIRA_SERVER or not JIRA_USERNAME or not JIRA_PASSWORD:
@@ -108,7 +110,7 @@ if host and port and proto and project and changeset and refspec:
         pass
 
     # Fetch all the changes.
-    git_url = "%s://%s:%d/%s" % (proto, host, int(port), project)
+    git_url = "%s://%s@%s:%d/%s" % (proto, GERRIT_USERNAME, host, int(port), project)
     if not os.path.exists(dirname):
         rc = subprocess.call(["git", "clone", git_url, dirname])
         if rc != 0:
