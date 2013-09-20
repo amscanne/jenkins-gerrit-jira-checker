@@ -32,15 +32,15 @@ project = os.getenv("GERRIT_PROJECT")
 changeset = os.getenv("GERRIT_PATCHSET_REVISION")
 refspec = os.getenv("GERRIT_REFSPEC")
 subject = os.getenv("GERRIT_CHANGE_SUBJECT")
-author_name = os.getenv("GERRIT_CHANGE_OWNER_NAME")
-author_email = os.getenv("GERRIT_CHANGE_OWNER_EMAIL")
+author_name = os.getenv("GERRIT_CHANGE_OWNER_NAME") or "unknown"
+author_email = os.getenv("GERRIT_CHANGE_OWNER_EMAIL") or "unknown"
 message = os.getenv("GERRIT_CHANGE_COMMIT_MESSAGE") or ""
 change_url = os.getenv("GERRIT_CHANGE_URL")
 
 # Check if we were triggered by gerrit.
-if not subject or not author_name or not author_email or not change_url:
+if not subject or not project:
     sys.stderr.write("No Gerrit information available.\n")
-    sys.stderr.write("Need GERRIT_CHANGE_SUBJECT and GERRIT_EVENT_ACCOUNT_EMAIL.\n")
+    sys.stderr.write("Need GERRIT_CHANGE_SUBJECT and GERRIT_PROJECT.\n")
     sys.exit(0)
 
 # Dump environment.
@@ -100,22 +100,27 @@ def extract_info(output):
 
     return (metadata, subject, message, issues, tokens)
 
-if host and port and proto and project and changeset and refspec:
+# Construct our local copy.
+dirname = "repos/%s" % project
+
+# Clone it if the information is available.
+if host and port and proto and refspec:
     # Create a local directory for our checkout.
-    dirname = "repos/%s:%d/%s" % (host, int(port), project)
     try:
-        os.makedirs("repos/%s:%d" % (host, int(port)))
+        os.makedirs("repos")
     except OSError:
         # Exists.
         pass
 
-    # Fetch all the changes.
-    git_url = "%s://%s@%s:%d/%s" % (proto, GERRIT_USERNAME, host, int(port), project)
+    # Clone if we need to.
     if not os.path.exists(dirname):
+        git_url = "%s://%s@%s:%d/%s" % (proto, GERRIT_USERNAME, host, int(port), project)
         rc = subprocess.call(["git", "clone", git_url, dirname])
         if rc != 0:
             sys.exit(rc)
 
+# If we have the repo, we can fetch.
+if os.path.exists(dirname):
     # Make sure we're up to date.
     rc = subprocess.call(["git", "fetch", "origin", refspec], cwd=dirname)
     if rc != 0:
@@ -165,17 +170,18 @@ for issue in issues:
     other_issues[issue].remove(issue)
     jira.issue(issue)
 
-# Comment on all issues.
-for issue in issues:
-    # Append a very basic comment.
-    body = "[~%s] has updated a [review|%s]." % (jira_user, change_url)
+# Comment only on fresh events.
+if change_url:
+    for issue in issues:
+        # Append a very basic comment.
+        body = "[~%s] has updated a [review|%s]." % (jira_user, change_url)
 
-    if len(other_issues[issue]):
-        # Append a comment with other related issues. This will make a link.
-        body = body + "\nRelated issues: " + ",".join(other_issues[issue])
+        if len(other_issues[issue]):
+            # Append a comment with other related issues. This will make a link.
+            body = body + "\nRelated issues: " + ",".join(other_issues[issue])
 
-    # Add the comment to JIRA.
-    comment = jira.add_comment(issue, body)
+        # Add the comment to JIRA.
+        comment = jira.add_comment(issue, body)
 
 # Exit with okay if there are any tokens or issues.
 if len(issues) > 0 or len(tokens) > 0:
