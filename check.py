@@ -115,13 +115,14 @@ if host and port and proto and project and changeset and refspec:
         rc = subprocess.call(["git", "clone", git_url, dirname])
         if rc != 0:
             sys.exit(rc)
-    else:
-        rc = subprocess.call(["git", "fetch", "origin", refspec], cwd=dirname)
-        if rc != 0:
-            sys.exit(rc)
+
+    # Make sure we're up to date.
+    rc = subprocess.call(["git", "fetch", "origin", refspec], cwd=dirname)
+    if rc != 0:
+        sys.exit(rc)
 
     # Extract the changeset.
-    proc = subprocess.Popen(["git", "show", changeset], stdout=subprocess.PIPE, cwd=dirname)
+    proc = subprocess.Popen(["git", "show", "FETCH_HEAD"], stdout=subprocess.PIPE, cwd=dirname)
     (stdout, stderr) = proc.communicate()
     if proc.returncode != 0:
         sys.exit(rc)
