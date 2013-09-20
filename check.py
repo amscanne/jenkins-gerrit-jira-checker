@@ -86,7 +86,7 @@ def extract_info(output):
 
                 # Only add tokens for the subject.
                 if len(TOKENS) > 0:
-                    for match in re.finditer(TOKENRE, line):
+                    for match in re.finditer(TOKENRE, line, re.IGNORECASE):
                         tokens.append(match.group(2))
 
             else:
@@ -135,7 +135,7 @@ else:
     tokens = []
     issues = []
     if len(TOKENS) > 0:
-        for match in re.finditer(TOKENRE, subject):
+        for match in re.finditer(TOKENRE, subject, re.IGNORECASE):
             tokens.append(match.group(2))
     for match in re.finditer(ISSUERE, subject):
         issues.append(match.group(2))
