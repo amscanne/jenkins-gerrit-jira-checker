@@ -168,7 +168,7 @@ for issue in issues:
 # Comment on all issues.
 for issue in issues:
     # Append a very basic comment.
-    body = "[~%s] has updated a [review|%s]</a>." % (jira_user, change_url)
+    body = "[~%s] has updated a [review|%s]." % (jira_user, change_url)
 
     if len(other_issues[issue]):
         # Append a comment with other related issues. This will make a link.
