@@ -16,10 +16,11 @@ JIRA_SERVER = os.getenv("JIRA_SERVER")
 JIRA_USERNAME = os.getenv("JIRA_USERNAME")
 JIRA_PASSWORD = os.getenv("JIRA_PASSWORD")
 
+# Check that we have JIRA configuration.
 if not JIRA_SERVER or not JIRA_USERNAME or not JIRA_PASSWORD:
     sys.stderr.write("No JIRA information provided.\n")
     sys.stderr.write("Need JIRA_SERVER, JIRA_USERNAME, JIRA_PASSWORD.\n")
-    sys.exit(1)
+    sys.exit(0)
 
 # From the gerrit plugin.
 host = os.getenv("GERRIT_HOST")
@@ -34,10 +35,11 @@ author_email = os.getenv("GERRIT_EVENT_ACCOUNT_EMAIL")
 message = os.getenv("GERRIT_CHANGE_COMMIT_MESSAGE") or ""
 change_url = os.getenv("GERRIT_CHANGE_URL")
 
+# Check if we were triggered by gerrit.
 if not subject or not author_name or not author_email or not change_url:
     sys.stderr.write("No Gerrit information available.\n")
     sys.stderr.write("Need GERRIT_CHANGE_SUBJECT and GERRIT_EVENT_ACCOUNT_EMAIL.\n")
-    sys.exit(1)
+    sys.exit(0)
 
 # Dump environment.
 for key, val in os.environ.items():
@@ -50,7 +52,6 @@ TOKENRE = "(^|[ :;,.(])(" + "|".join(TOKENS) + ")($|[ :;,.)])"
 # Connect to JIRA (fast fail).
 options = { "server": JIRA_SERVER }
 jira = JIRA(options, basic_auth=(JIRA_USERNAME, JIRA_PASSWORD))
-
 
 def extract_info(output):
     metadata = {}
