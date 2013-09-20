@@ -32,8 +32,8 @@ project = os.getenv("GERRIT_PROJECT")
 changeset = os.getenv("GERRIT_PATCHSET_REVISION")
 refspec = os.getenv("GERRIT_REFSPEC")
 subject = os.getenv("GERRIT_CHANGE_SUBJECT")
-author_name = os.getenv("GERRIT_EVENT_ACCOUNT_NAME")
-author_email = os.getenv("GERRIT_EVENT_ACCOUNT_EMAIL")
+author_name = os.getenv("GERRIT_CHANGE_OWNER_NAME")
+author_email = os.getenv("GERRIT_CHANGE_OWNER_EMAIL")
 message = os.getenv("GERRIT_CHANGE_COMMIT_MESSAGE") or ""
 change_url = os.getenv("GERRIT_CHANGE_URL")
 
