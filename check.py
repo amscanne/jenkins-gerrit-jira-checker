@@ -36,11 +36,12 @@ author_name = os.getenv("GERRIT_CHANGE_OWNER_NAME") or "unknown"
 author_email = os.getenv("GERRIT_CHANGE_OWNER_EMAIL") or "unknown"
 message = os.getenv("GERRIT_CHANGE_COMMIT_MESSAGE") or ""
 change_url = os.getenv("GERRIT_CHANGE_URL")
+event_type = os.getenv("GERRIT_EVENT_TYPE")
 
 # Check if we were triggered by gerrit.
-if not subject or not project:
+if not subject or not project or not event_type:
     sys.stderr.write("No Gerrit information available.\n")
-    sys.stderr.write("Need GERRIT_CHANGE_SUBJECT and GERRIT_PROJECT.\n")
+    sys.stderr.write("Need GERRIT_CHANGE_SUBJECT, GERRIT_PROJECT and GERRIT_EVENT_TYPE.\n")
     sys.exit(0)
 
 # Dump environment.
@@ -170,11 +171,11 @@ for issue in issues:
     other_issues[issue].remove(issue)
     jira.issue(issue)
 
-# Comment only on fresh events.
-if change_url:
+# Add a comment if it's merged.
+if event_type == "change-merged" and change_url:
     for issue in issues:
         # Append a very basic comment.
-        body = "[~%s] has updated a [review|%s]." % (jira_user, change_url)
+        body = "[~%s] has merged a [change|%s]." % (jira_user, change_url)
 
         if len(other_issues[issue]):
             # Append a comment with other related issues. This will make a link.
