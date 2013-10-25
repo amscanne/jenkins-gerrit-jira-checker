@@ -8,6 +8,7 @@ import atexit
 import shutil
 import subprocess
 import getpass
+import random
 
 from jira.client import JIRA
 
@@ -46,7 +47,7 @@ if not subject or not project or not event_type:
 
 # Dump environment.
 for key, val in os.environ.items():
-   print "%s=%s" % (key, val)
+   sys.stderr.write("%s=%s\n" % (key, val))
 
 # Build our regular expressions.
 ISSUERE = "(^|[ :;,.(])([A-Z]+-[1-9][0-9]*)($|[ :;,.)])"
@@ -149,10 +150,91 @@ else:
         issues.append(match.group(2))
 
 # Dump extracted info.
-print "subject:", subject
-print "message:", message
-print "issues:", issues
-print "tokens:", tokens
+sys.stderr.write("subject: %s\n" % subject)
+sys.stderr.write("message: %s\n" % message)
+sys.stderr.write("issues: %s\n" % issues)
+sys.stderr.write("tokens: %s\n" % tokens)
+
+# Find a suitable adjective for this change.
+# These are ranked from worst to best. Basically
+# the *longer* the commit message is, the "better"
+# we consider it. Of course, the real purpose here
+# is just to add a bit of comedy.
+GOOD_ADJECTIVES = [
+    "adroit",
+    "arcadian",
+    "calamitous",
+    "corpulent",
+    "efficacious",
+    "didactic",
+    "effulgent",
+    "equanimous",
+    "fastidious",
+    "fecund",
+    "garrulous",
+    "histrionic",
+    "intransigent",
+    "jocular",
+    "loquacious",
+    "luminous",
+    "munificent",
+    "parsimonious",
+    "ruminative",
+    "sagacious",
+    "tenacious",
+    "zealous",
+]
+BAD_ADJECTIVES = [
+    "belligerent",
+    "boorish",
+    "caustic",
+    "defamatory",
+    "dowdy",
+    "foreboding",
+    "hubristic",
+    "insolent",
+    "exercrable",
+    "feckless",
+    "friable",
+    "fulsome",
+    "guileless",
+    "incendiary",
+    "insidious",
+    "insolent",
+    "invidious",
+    "irksome",
+    "jejune",
+    "limpid",
+    "mannered",
+    "mendacious",
+    "meretricious",
+    "minatory",
+    "mordant",
+    "nefarious",
+    "noxious",
+    "obtuse",
+    "petulant",
+    "platitudinous",
+    "querulous",
+    "rebarbative",
+    "risible",
+    "spasmodic",
+    "strident",
+    "tremulous",
+    "turgid",
+    "verdant",
+    "voluble",
+]
+bad_adjective = random.choice(BAD_ADJECTIVES)
+good_adjective = random.choice(GOOD_ADJECTIVES)
+
+def get_article(adjective):
+    VOWELS = ("a", "e", "i", "o", "u")
+    if adjective[0] in VOWELS or \
+       (adjective[0] == "h" and change_adjective[1] in VOWELS):
+        return "an"
+    else:
+        return "a"
 
 # Find the user if available.
 jira_user = "%s <%s>" % (author_name, author_email)
@@ -175,7 +257,9 @@ for issue in issues:
 if event_type == "change-merged" and change_url:
     for issue in issues:
         # Append a very basic comment.
-        body = "[~%s] has merged a [change|%s]." % (jira_user, change_url)
+        good_article = get_article(good_adjective)
+        body = "[~%s] has merged %s %s [change|%s]." % (
+            jira_user, good_article, good_adjective, change_url)
 
         if len(other_issues[issue]):
             # Append a comment with other related issues. This will make a link.
@@ -186,6 +270,8 @@ if event_type == "change-merged" and change_url:
 
 # Exit with okay if there are any tokens or issues.
 if len(issues) > 0 or len(tokens) > 0:
+    print "This commit looks positively %s!" % good_adjective
     sys.exit(0)
 else:
+    print "This commit is a bit %s for my taste." % bad_adjective
     sys.exit(1)
