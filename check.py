@@ -231,7 +231,7 @@ good_adjective = random.choice(GOOD_ADJECTIVES)
 def get_article(adjective):
     VOWELS = ("a", "e", "i", "o", "u")
     if adjective[0] in VOWELS or \
-       (adjective[0] == "h" and change_adjective[1] in VOWELS):
+       (adjective[0] == "h" and adjective[1] in VOWELS):
         return "an"
     else:
         return "a"
